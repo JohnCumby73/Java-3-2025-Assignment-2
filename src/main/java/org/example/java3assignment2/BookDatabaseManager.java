@@ -1,5 +1,8 @@
 package org.example.java3assignment2;
 
+import org.example.java3assignment2.configuration.MariaDBProperties;
+
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.sql.*;
@@ -13,7 +16,7 @@ public class BookDatabaseManager {
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_RED = "\u001B[31m";
 
-    public static final String DB_NAME = "java-assignment-2";
+    public static final String DB_NAME = "books";
     public static final String GETBOOKS_QUERY = "SELECT * FROM titles";
     public static final String GETAUTHORS_QUERY = "SELECT * FROM authors";
     public static final String BUILDLISTOFAUTHORS = "SELECT authorID FROM authorisbn WHERE isbn = ";
@@ -40,7 +43,7 @@ public class BookDatabaseManager {
     Library buildUpLibraryWithoutRelationships() {
         LinkedList<Book> books = new LinkedList<>();
         LinkedList<Author> authors = new LinkedList<>();
-
+        MariaDBProperties.isDriverRegistered(System.out);
 
         // Build up list of books from database without list of authors associated with each book.
         try {
@@ -182,37 +185,86 @@ public class BookDatabaseManager {
 
 
     /**
-     * Prints the attributes of every book in the library.
+     * Prints the attributes of every book in the library in an HTML format.
      */
-    public void printAllBooks() {
-        System.out.println();
-        for (Book book : library.getBooks()) {
-            System.out.print(ANSI_GREEN + "ISBN: " + ANSI_RESET + book.getIsbn() +
-                    ANSI_GREEN + " Title: " + ANSI_RESET + book.getTitle() + ANSI_GREEN +
-                    " Edition Number: " + ANSI_RESET + book.getEditionNumber() + ANSI_GREEN +
-                    " Copyright: " + ANSI_RESET + book.getCopyright() + ANSI_GREEN + " List of authors: " + ANSI_RESET);
-            for (Author author : book.getAuthorList()) {
-                System.out.print(author.getFirstName() + " " + author.getLastName() + ", ");
+    public void printAllBooks(PrintWriter out) {
+        if (library != null && library.getBooks() != null) {
+            for (Book book : library.getBooks()) {
+                out.println(" <li>"); // Start a list item for each book
+                out.println("<strong>ISBN:</strong> " + book.getIsbn() + "<br/>");
+                out.println("<strong>Title:</strong> " + book.getTitle() + "<br/>");
+                out.println("<strong>Edition Number:</strong> " + book.getEditionNumber() + "<br/>");
+                out.println("<strong>Copyright:</strong> " + book.getCopyright() + "<br/>");
+                out.println("<strong>List of authors:</strong>");
+                if (book.getAuthorList() != null && !book.getAuthorList().isEmpty()) {
+                    boolean first = true;
+                    for (Author author : book.getAuthorList()) {
+                        if (!first) {
+                            out.print(", "); // Add a comma between authors
+                        }
+                        out.print(author.getFirstName() + " " + author.getLastName());
+                        first = false;
+                    }
+                    out.println("<br/> <br/>");
+                } else {
+                    out.println("No authors listed.<br/>");
+                }
+                out.println("</li>");
             }
-            System.out.println();
+        } else {
+            out.println("No library found.");
         }
-        System.out.println();
+        out.println();
     }
+
+//    public void printAllAuthorNamesAndIds(PrintWriter out) {
+//        if (library != null && library.getAuthors() != null) {
+//            for (Author author : library.getAuthors()) {
+//                out.println(" <li>");
+//                out.println("<strong>Name:</strong> " + author.getFirstName() + " " + author.getLastName() + "<br/>");
+//                out.println("<strong>Author ID:</strong>" + author.getAuthorID() + "<br/>");
+//            }
+//        }
+//        out.println();
+//    }
 
     /**
      * Prints the attributes of every author in the library.
      */
-    public void printAllAuthors() {
-        System.out.println();
-        for (Author author : library.getAuthors()) {
-            System.out.println(ANSI_GREEN + "First Name: " + ANSI_RESET + author.getFirstName() +
-                    ANSI_GREEN + " Last Name: " + ANSI_RESET + author.getLastName() + ANSI_GREEN +
-                    " Author ID: " + ANSI_RESET +author.getAuthorID() + ANSI_GREEN + " List of books: " + ANSI_RESET);
-            for (Book book : author.getBookList()) {
-                System.out.println(book.getTitle() + ", ");
+    public void printAllAuthors(PrintWriter out) {
+        if (library != null && library.getAuthors() != null) {
+            for (Author author : library.getAuthors()) {
+                out.println("<li>");
+                out.println("<strong>Name:</strong> " + author.getFirstName() + " " + author.getLastName() + "<br/>");
+                out.println("<strong>Author ID:</strong> " + author.getAuthorID() + "<br/>");
+                out.println("<strong>List of books:</strong>");
+
+                if (author.getBookList() != null && !author.getBookList().isEmpty()) {
+                    boolean first = true;
+                    for (Book book : author.getBookList()) {
+                        if (!first) {
+                            out.print(", ");
+                        }
+                        out.print(book.getTitle());
+                        first = false;
+                    }
+                    out.println("<br/> <br/>");
+                } else {
+                    out.println("No books listed.<br/>");
+                }
             }
+            out.println();
         }
-        System.out.println();
+//        System.out.println();
+//        for (Author author : library.getAuthors()) {
+//            System.out.println(ANSI_GREEN + "First Name: " + ANSI_RESET + author.getFirstName() +
+//                    ANSI_GREEN + " Last Name: " + ANSI_RESET + author.getLastName() + ANSI_GREEN +
+//                    " Author ID: " + ANSI_RESET +author.getAuthorID() + ANSI_GREEN + " List of books: " + ANSI_RESET);
+//            for (Book book : author.getBookList()) {
+//                System.out.println(book.getTitle() + ", ");
+//            }
+//        }
+//        System.out.println();
     }
 
     /**
@@ -375,7 +427,7 @@ public class BookDatabaseManager {
      * @param newCopyrightYear New book copyright year.
      * @param listOfAssociatedAuthorIDs New book list of associated author IDs.
      */
-    public void sendNewBookToDatabase(String newIsbn, String newTitle, int newEditionNumber, String newCopyrightYear, ArrayList<Integer> listOfAssociatedAuthorIDs) {
+    public void sendNewBookToDatabase(String newIsbn, String newTitle, int newEditionNumber, String newCopyrightYear, ArrayList<Integer> listOfAssociatedAuthorIDs, PrintWriter out) {
         String titlesTableSql = "INSERT INTO titles (isbn, title, editionNumber, copyright) VALUES (?,?,?,?)";
         String authorIsbnTableSql = "INSERT INTO authorisbn (isbn, authorID) VALUES (?,?)";
 
@@ -394,7 +446,7 @@ public class BookDatabaseManager {
             int rowsAffected = titlesStmt.executeUpdate();
 
             if (rowsAffected > 0) {
-                System.out.println(ANSI_GREEN + "Book added successfully !!!" + ANSI_RESET);
+                out.println("<p>Book Added Successfully !!!</p><br>");
 
                 // Insert into authorisbn table (potentially multiple times)
                 for (int authorID : listOfAssociatedAuthorIDs) {
@@ -416,11 +468,11 @@ public class BookDatabaseManager {
 
                 if (!allAuthorInsertsSuccessfull) {
                     conn.rollback(); // Cancel transaction
-                    System.out.println(ANSI_RED + "Failed to add authors. Rolling back." + ANSI_RESET);
+                    out.println("<p>Failed to add authors. Rolling Back.</p><br>");
                     return;
                 }
 
-                System.out.println(ANSI_GREEN + "Author's added to book successfully !!!" + ANSI_RESET);
+                out.println("<p>Authors added to book successfully !!!</p><br>");
 
                 conn.commit(); // Commit transaction.
 
@@ -440,7 +492,7 @@ public class BookDatabaseManager {
                 }
             } else {
                 conn.rollback(); // Rollback if operation fails for some other reason.
-                System.out.println(ANSI_RED + "Operation Failed !!!" + ANSI_RESET);
+                out.println("<p>Operation Failed !!!</p><br>");
             }
         } catch (SQLException e) {
             e.printStackTrace();
