@@ -55,6 +55,12 @@ public class LibraryData extends HttpServlet {
             dbm.sendNewBookToDatabase(isbn, title, editionNumber, copyrightYear, authorIdList, out);
 
 
+        } else if ("author".equals(submissionType)) {
+            String firstName = request.getParameter("firstName");
+            String lastName = request.getParameter("lastName");
+
+            // Add author
+            dbm.sendNewAuthorToDatabase(firstName, lastName, out);
         }
     }
 

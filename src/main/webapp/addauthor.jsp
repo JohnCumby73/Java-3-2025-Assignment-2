@@ -8,9 +8,25 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
-    <title>Title</title>
+    <title>Add Author</title>
 </head>
 <body>
+    <h1><%= "Add an author"%></h1>
+    <br/>
+    <form action = "library-servlet" method = "post">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName"><br><br>
 
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName"><br><br>
+
+        <p>ID will be auto generated.</p>
+
+        <input type="hidden" name="submissionType" value="author">
+
+        <input type="submit" value="Submit">
+    </form>
+    <br>
+    <a href="index.jsp">Back to Main Page</a>
 </body>
 </html>

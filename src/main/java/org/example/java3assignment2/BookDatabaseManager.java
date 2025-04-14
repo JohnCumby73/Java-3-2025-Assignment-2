@@ -16,7 +16,7 @@ public class BookDatabaseManager {
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_RED = "\u001B[31m";
 
-    public static final String DB_NAME = "books";
+    public static final String DB_NAME = "java-assignment-2";
     public static final String GETBOOKS_QUERY = "SELECT * FROM titles";
     public static final String GETAUTHORS_QUERY = "SELECT * FROM authors";
     public static final String BUILDLISTOFAUTHORS = "SELECT authorID FROM authorisbn WHERE isbn = ";
@@ -504,7 +504,7 @@ public class BookDatabaseManager {
      * @param newFirstName New author first name.
      * @param newLastName New author last name.
      */
-    public void sendNewAuthorToDatabase(String newFirstName, String newLastName) {
+    public void sendNewAuthorToDatabase(String newFirstName, String newLastName, PrintWriter out) {
         String sql = "INSERT INTO authors (firstName, lastName) VALUES (?,?)";
 
         try (Connection conn = DriverManager.getConnection(DATABASE_URL + DB_NAME, DATABASE_USER, DATABASE_PASSWORD);
@@ -516,7 +516,7 @@ public class BookDatabaseManager {
             int rowsAffected = pstmt.executeUpdate();
 
             if (rowsAffected > 0) {
-                System.out.println(ANSI_GREEN + "Author added successfully !!!" + ANSI_RESET);
+                out.println("<p>Author Added Successfully !!!</p><br>");
 
                 // Get the auto-generated authorID
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -528,11 +528,11 @@ public class BookDatabaseManager {
                         author.setBookList(new LinkedList<>());
 
                     } else {
-                        System.out.println(ANSI_RED + "Could not retrieve Author ID, internal author list not accurate !!!" + ANSI_RESET);
+                        out.println("<p>Could not retrieve Author ID, internal author list not accurate !!! </p><br>");
                     }
                 }
             } else {
-                System.out.println(ANSI_RED + "Could not retrieve author ID" + ANSI_RESET);
+                out.println("<p>Could not retrieve Author ID !!!</p><br>");
             }
         } catch (SQLException e) {
             e.printStackTrace();
